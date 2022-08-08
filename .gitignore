@@ -1,0 +1,11 @@
+# system data
+.env
+
+# web data
+web/
+
+# build file
+bin/
+
+# other
+my review.txt

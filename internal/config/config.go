@@ -1,9 +1,10 @@
 package config
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
 	"gopkg.in/yaml.v2"
@@ -49,12 +50,17 @@ func NewConfig(configPath string) (*Config, error) {
 }
 
 func (config *Config) Save(configPath string) {
-	file, _ := os.OpenFile(configPath, os.O_CREATE|os.O_WRONLY, 0466)
+	data, err := yaml.Marshal(config)
 
-	encoder := yaml.NewEncoder(bufio.NewWriter(file))
-	defer encoder.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	encoder.Encode(config)
+	err2 := ioutil.WriteFile(configPath, data, 0)
+
+	if err2 != nil {
+		log.Fatal(err)
+	}
 }
 
 func NewDefaultConfig() *Config {
@@ -65,6 +71,7 @@ func NewDefaultConfig() *Config {
 	config.WebFolder = "./web/"
 	config.ProfileFolder = "./profile/"
 	config.ReviewFolder = "./review/"
+	config.UserFolder = "./user/"
 	config.Server.Host = ""
 	config.Server.Port = "8050"
 	return config

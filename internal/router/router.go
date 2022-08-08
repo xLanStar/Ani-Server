@@ -379,8 +379,6 @@ func POST_API_DELETEREVIEW_Handler(c *gin.Context) {
 func PanicHandler(c *gin.Context) {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println("[PanicHandler]", err)
-
 			if responseAlert, ok := err.(*alert.Alert); ok {
 				c.JSON(http.StatusBadRequest, gin.H{"alert": responseAlert})
 				fmt.Println(responseAlert)

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
@@ -13,13 +14,13 @@ type Config struct {
 		Host string `yaml:"host"`
 		Port string `yaml:"port"`
 	} `yaml:"server"`
-	WebFolder     string `yaml:"webFolder"`
-	MediaFolder   string `yaml:"mediaFolder"`
-	MediaFile     string `yaml:"mediaFile"`
-	UserFolder    string `yaml:"userFolder"`
-	UserFile      string `yaml:"userFile"`
-	ReviewFolder  string `yaml:"reviewFolder"`
-	ReviewFile    string `yaml:"reviewFile"`
+	WebFolder   string `yaml:"webFolder"`
+	MediaFolder string `yaml:"mediaFolder"`
+	// MediaFile     string `yaml:"mediaFile"`
+	UserFolder string `yaml:"userFolder"`
+	// UserFile      string `yaml:"userFile"`
+	ReviewFolder string `yaml:"reviewFolder"`
+	// ReviewFile    string `yaml:"reviewFile"`
 	ProfileFolder string `yaml:"profileFolder"`
 	DataFile      string `yaml:"dataFile"`
 }
@@ -45,6 +46,28 @@ func NewConfig(configPath string) (*Config, error) {
 	}
 
 	return config, nil
+}
+
+func (config *Config) Save(configPath string) {
+	file, _ := os.OpenFile(configPath, os.O_CREATE|os.O_WRONLY, 0466)
+
+	encoder := yaml.NewEncoder(bufio.NewWriter(file))
+	defer encoder.Close()
+
+	encoder.Encode(config)
+}
+
+func NewDefaultConfig() *Config {
+	// Create config structure
+	config := &Config{}
+	config.DataFile = "./data.bin"
+	config.MediaFolder = "./media/"
+	config.WebFolder = "./web/"
+	config.ProfileFolder = "./profile/"
+	config.ReviewFolder = "./review/"
+	config.Server.Host = ""
+	config.Server.Port = "8050"
+	return config
 }
 
 // ValidateConfigPath just makes sure, that the path provided is a file,

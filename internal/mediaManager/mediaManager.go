@@ -5,6 +5,7 @@ import (
 	Media "Ani-Server/internal/media"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -90,6 +91,11 @@ func FetchMediaById(mediaId uint32) (Media.IMedia, error) {
 }
 
 func UpdateIf101(lastUpdateAt uint32) {
+	if lastUpdateAt == 0 {
+		log.Println("尚未指定最新資料時間點，將不進行更新")
+		return
+	}
+
 	fmt.Println("[MediaManager] 即將進行更新if101...")
 
 	var if101Map map[uint32]uint32 = make(map[uint32]uint32, len(idMap))

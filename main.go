@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"mime"
 	"net/http"
@@ -37,6 +36,13 @@ type ServerData struct {
 }
 
 func (serverData *ServerData) Load(filePath string) {
+	if _, err := os.Stat(filePath); err != nil {
+		log.Println("伺服器尚未保留紀錄，將初始化伺服器紀錄")
+		serverData.UserCount = 0
+		serverData.ReviewCount = 0
+		serverData.LastUpdateif101 = 0
+		return
+	}
 
 	var fileReader fastio.FileReader
 	fileReader.Init()
@@ -51,7 +57,7 @@ func (serverData *ServerData) Save(filePath string) {
 	var fileWriter fastio.FileWriter
 	fileWriter.Init()
 	fileWriter.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666)
-	fmt.Printf("保存伺服器資料 帳號數量:%d 評論數量:%d 上次更新if101時間:%d\n", serverData.UserCount, serverData.ReviewCount, serverData.LastUpdateif101)
+	log.Printf("保存伺服器資料 帳號數量:%d 評論數量:%d 上次更新if101時間:%d\n", serverData.UserCount, serverData.ReviewCount, serverData.LastUpdateif101)
 	fileWriter.WriteUint32(serverData.UserCount)
 	fileWriter.WriteUint32(serverData.ReviewCount)
 	fileWriter.WriteUint32(serverData.LastUpdateif101)
@@ -64,12 +70,15 @@ func run() {
 
 	cfgPath, err := config.ParseFlags()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("未指定設定檔案路徑，將採用預設路徑")
+		cfgPath = "config.yml"
 	}
 
 	cfg, err := config.NewConfig(cfgPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("伺服器尚未建立設定，將採用預設設定")
+		cfg = config.NewDefaultConfig()
+		cfg.Save(cfgPath)
 	}
 
 	serverData := new(ServerData)
@@ -84,6 +93,10 @@ func run() {
 			serverData.LastUpdateif101 = NowTime()
 		}
 	}()
+
+	if _, err := os.Stat(cfg.WebFolder); err != nil {
+		log.Fatal("找不到網頁資料夾")
+	}
 
 	auth.Init()
 
@@ -107,18 +120,6 @@ func run() {
 		reviewManager.Save()
 		serverData.ReviewCount = reviewManager.GetReviewCount()
 	}()
-
-	// debug
-	// user := userManager.RegistryAccount("as95624268", "aa95624268", "Lanstar")
-	// user.LikeMedia(31706)
-	// user.LikeMedia(124194)
-
-	// user.Introduction = "123\n654\nASD"
-
-	// reviewManager.AddReview(user, 20954, 0, "神作")
-
-	// user := userManager.GetUser(1)
-	// reviewManager.AddReview(user, 140960, 0, "神作")
 
 	// process color
 	gin.DefaultWriter = colorable.NewColorableStdout()
@@ -149,6 +150,13 @@ func run() {
 	}
 	go func() {
 		// service connections
+		var webName string
+		if cfg.Server.Host == "" {
+			webName = "localhost"
+		} else {
+			webName = cfg.Server.Host
+		}
+		log.Printf("開始伺服器，http://%s:%s\n", webName, cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}

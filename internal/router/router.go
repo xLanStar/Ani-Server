@@ -30,8 +30,7 @@ func Cors(c *gin.Context) {
 	header := c.Writer.Header()
 	header.Set("Access-Control-Allow-Origin", "http://localhost:4000")
 	header.Set("Access-Control-Allow-Credentials", "true")
-	header.Set("Access-Control-Allow-Headers", "Content-Type") //, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With
-	// header.Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET")
+	header.Set("Access-Control-Allow-Headers", "Content-Type")
 
 	c.Next()
 }
@@ -55,10 +54,10 @@ func POST_API_TITLE_Handler(c *gin.Context) {
 	c.JSON(http.StatusOK, responseData)
 }
 
-/**
-	id 	 		uint32 	 : 作品ID
-	relativeIds []uint32 : 相關作品ID
-**/
+/*
+mediaId 	uint32	: 作品ID
+relativeIds []uint32: 相關作品ID
+*/
 func POST_API_MEDIA_Handler(c *gin.Context) {
 	var data struct {
 		Id          uint32   `json:"id"`
@@ -121,10 +120,10 @@ func POST_API_MEDIA_Handler(c *gin.Context) {
 	c.JSON(http.StatusOK, responseData)
 }
 
-/**
-	id 	 uint32 				: 作品ID
-	data map[string]interface{} : 編輯項目
-**/
+/*
+id 	 uint32 				: 作品ID
+data map[string]interface{} : 編輯項目
+*/
 func POST_API_EDITMEDIA_Handler(c *gin.Context) {
 	var data struct {
 		Id   uint32                 `json:"id"`
@@ -174,8 +173,8 @@ func POST_API_VALIDATE_Handler(c *gin.Context) {
 }
 
 /*
-	account 	string	: 帳號
-	password 	string	: 密碼
+account 	string	: 帳號
+password 	string	: 密碼
 */
 func POST_API_LOGIN_Handler(c *gin.Context) {
 	var data struct {
@@ -193,9 +192,9 @@ func POST_API_LOGIN_Handler(c *gin.Context) {
 }
 
 /*
-	account 	string	: 帳號
-	password 	string	: 密碼
-	userName 	string	: 名稱
+account 	string	: 帳號
+password 	string	: 密碼
+userName 	string	: 名稱
 */
 func POST_API_REGISTER_Handler(c *gin.Context) {
 	var data struct {
@@ -231,9 +230,9 @@ func POST_API_LOGOUT_Handler(c *gin.Context) {
 uint32 : 帳號ID
 */
 func GET_API_USER_Handler(c *gin.Context) {
-	s_userid := c.Param("userid")
+	sUserId := c.Param("userid")
 
-	userId, err := strconv.Atoi(s_userid)
+	userId, err := strconv.Atoi(sUserId)
 
 	if err != nil {
 		panic(&alert.DataFormatError)
@@ -292,8 +291,8 @@ func POST_API_LIKEMEDIA_Handler(c *gin.Context) {
 }
 
 /*
-	media 	uint32	: 作品ID
-	review 	uint32	: 評論ID
+media 	uint32	: 作品ID
+review 	uint32	: 評論ID
 */
 func POST_API_LIKEREVIEW_Handler(c *gin.Context) {
 	var data struct {
@@ -319,9 +318,9 @@ func POST_API_LIKEREVIEW_Handler(c *gin.Context) {
 }
 
 /*
-	media 	uint32 	: 作品ID
-	rank 	uint8	: 評級
-	content string	: 內容
+media 	uint32 	: 作品ID
+rank 	uint8	: 評級
+content string	: 內容
 */
 func POST_API_EDITREVIEW_Handler(c *gin.Context) {
 	var data struct {
@@ -394,8 +393,6 @@ func PanicHandler(c *gin.Context) {
 func GET_API_PROFILE_Handler(c *gin.Context) {
 	userid := c.Param("userid")
 
-	// fmt.Println("[Profile] ", userid)
-
 	c.File(profileFolder + userid)
 }
 
@@ -438,8 +435,6 @@ func MapRouter(server *gin.Engine, memoryStore *persist.MemoryStore) {
 	// middlewares
 	server.Use(PanicHandler, Cors)
 
-	// server.Use(Payload)
-
 	// routers
 	server.POST("/api/title/", POST_API_TITLE_Handler)
 	server.POST("/api/media/", POST_API_MEDIA_Handler)
@@ -454,7 +449,6 @@ func MapRouter(server *gin.Engine, memoryStore *persist.MemoryStore) {
 	server.POST("/api/likereview/", POST_API_LIKEREVIEW_Handler)
 	server.POST("/api/editreview/", POST_API_EDITREVIEW_Handler)
 	server.POST("/api/deletereview/", POST_API_DELETEREVIEW_Handler)
-	// server.GET("/api/profile/:filename", cache.CacheByRequestURI(memoryStore, time.Hour*24*30), GET_API_PROFILE_Handler)
 	server.GET("/api/profile/:userid/", GET_API_PROFILE_Handler)
 	server.POST("/api/edituser/", POST_API_EDITUSER_Handler)
 

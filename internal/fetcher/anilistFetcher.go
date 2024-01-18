@@ -19,11 +19,11 @@ type RawMedia struct {
 
 func (rawMedia *RawMedia) ToMedia() media.IMedia {
 	if rawMedia.Type == "ANIME" {
-		return &media.Anime{Id: uint32(rawMedia.Id), Title: rawMedia.Title["chinese"], Description: rawMedia.Description, Episodes: 0, Id_if101: 0}
+		return &media.Anime{Id: uint32(rawMedia.Id), Title: rawMedia.Title["chinese"], Description: rawMedia.Description, Episodes: 0, If101Id: 0}
 	} else if rawMedia.Format == "NOVEL" {
 		return &media.Novel{Id: uint32(rawMedia.Id), Title: rawMedia.Title["chinese"], Description: rawMedia.Description}
 	} else {
-		return &media.Manga{Id: uint32(rawMedia.Id), Title: rawMedia.Title["chinese"], Description: rawMedia.Description, Id_cartoonmad: 0}
+		return &media.Manga{Id: uint32(rawMedia.Id), Title: rawMedia.Title["chinese"], Description: rawMedia.Description, CartoonmadId: 0}
 	}
 }
 
@@ -225,32 +225,6 @@ func FetchMediasSortedByUpdate(page int) ([]media.IMedia, error) {
 
 	return nil, nil
 }
-
-// func fetch() {
-
-// 	page := 1
-// 	for {
-// 		fmt.Printf("正在抓 %d 頁...\n", page)
-// 		medias := fetchAllRawMedias(page)
-
-// 		if len(medias) == 0 {
-// 			break
-// 		}
-
-// 		fmt.Println("正在寫入檔案...")
-// 		for _, media := range medias {
-// 			if len(media.Title) == 0 {
-// 				continue
-// 			}
-// 			writeRawMedia(media)
-// 		}
-
-// 		page++
-
-// 		fmt.Println("寫入完成!")
-// 		time.Sleep(time.Second * 2)
-// 	}
-// }
 
 // SECTION_TYPE: 釋放記憶體空間
 func DisposeAnilistPoster() {

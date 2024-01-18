@@ -63,10 +63,6 @@ func ValidateJWT(token string) *userManager.User {
 		panic(&alert.IllegalData)
 	}
 
-	// if userNameString != userName {
-	// 	panic("使用者名稱有誤!")
-	// }
-
 	passwordClaim, err := loadedClaims.Get("password")
 	if err != nil {
 		fmt.Println("token no password")

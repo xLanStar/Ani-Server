@@ -4,7 +4,6 @@ import (
 	"Ani-Server/internal/fetcher"
 	Media "Ani-Server/internal/media"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -28,7 +27,7 @@ func Load(_mediaFolder string) {
 
 	fileReader.Init()
 
-	files, _ := ioutil.ReadDir(mediaFolder)
+	files, _ := os.ReadDir(mediaFolder)
 
 	for _, f := range files {
 		fileReader.OpenFile(mediaFolder+f.Name(), os.O_RDONLY, 0666)
@@ -102,13 +101,13 @@ func UpdateIf101(lastUpdateAt uint32) {
 
 	for mediaId, media := range idMap {
 		if media.GetType() == Media.ANIME {
-			if101Map[media.(*Media.Anime).Id_if101] = mediaId
+			if101Map[media.(*Media.Anime).If101Id] = mediaId
 		}
 	}
 
-	var updatedIds_if101 []uint32 = fetcher.GetUpdatedIds(lastUpdateAt)
+	var updatedIdsIf101 []uint32 = fetcher.GetUpdatedIds(lastUpdateAt)
 
-	for _, id_if101 := range updatedIds_if101 {
+	for _, id_if101 := range updatedIdsIf101 {
 		if mediaId, ok := if101Map[id_if101]; ok {
 			changed := fetcher.FetchIf101Details(idMap[mediaId].(*Media.Anime))
 
@@ -209,16 +208,16 @@ func EditMedia(mediaId uint32, mediaType Media.MediaType, data map[string]interf
 		anime := media.(*Media.Anime)
 
 		if id_if101, ok := data["id_if101"]; ok {
-			fmt.Printf("    [ID_if101]\n    %6d\n  ->%6d\n", anime.Id_if101, uint32(id_if101.(float64)))
+			fmt.Printf("    [ID_if101]\n    %6d\n  ->%6d\n", anime.If101Id, uint32(id_if101.(float64)))
 
 			fmt.Println("原本:", anime)
 
-			anime.Id_if101 = uint32(id_if101.(float64))
+			anime.If101Id = uint32(id_if101.(float64))
 			anime.Videos = make([]string, 0)
 			anime.Episodes = 0
 			anime.ExEpisodes = make([]uint32, 0)
 
-			if anime.Id_if101 != 0 {
+			if anime.If101Id != 0 {
 				changed := fetcher.FetchIf101Details(anime)
 
 				if !changed {
@@ -228,18 +227,16 @@ func EditMedia(mediaId uint32, mediaType Media.MediaType, data map[string]interf
 				}
 			}
 		}
-	} else if media.GetType() == Media.NOVEL {
-		// TODO: NOVEL INFORMATIONS
 	} else {
 
 		manga := media.(*Media.Manga)
 
-		if id_cartoonmad, ok := data["id_cartoonmad"]; ok {
-			fmt.Printf("    [ID_cartoonmad]\n    %6d\n  ->%6d\n", manga.Id_cartoonmad, uint32(id_cartoonmad.(float64)))
-			manga.Id_cartoonmad = uint32(id_cartoonmad.(float64))
+		if cartoonmadId, ok := data["id_cartoonmad"]; ok {
+			fmt.Printf("    [ID_cartoonmad]\n    %6d\n  ->%6d\n", manga.CartoonmadId, uint32(cartoonmadId.(float64)))
+			manga.CartoonmadId = uint32(cartoonmadId.(float64))
 			manga.Volumes = make([]uint32, 0)
 
-			if manga.Id_cartoonmad != 0 {
+			if manga.CartoonmadId != 0 {
 				fetcher.FetchCartoonmadDetail(manga)
 			}
 		}
@@ -247,22 +244,3 @@ func EditMedia(mediaId uint32, mediaType Media.MediaType, data map[string]interf
 
 	change[mediaId] = true
 }
-
-// func EditMediaDescription(id uint32, mediaType Media.MediaType, description string) {
-// 	fmt.Printf("[MediaManager] 修改作品ID:%7d 簡介:%s\n", id, description)
-// 	//TODO:LOG
-
-// 	if media, ok := idMap[id]; ok {
-// 		media.SetDescription(description)
-// 	} else {
-// 		if mediaType == Media.ANIME {
-// 			anime := &Media.Anime{Media: Media.Media{Id: id, Type: mediaType, Description: description}}
-// 			idMap[id] = anime
-// 		} else if mediaType == Media.MANGA {
-// 			manga := &Media.Anime{Media: Media.Media{Id: id, Type: mediaType, Description: description}}
-// 			idMap[id] = manga
-// 		}
-// 	}
-
-// 	change[id] = true
-// }

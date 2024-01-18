@@ -11,7 +11,6 @@ type Novel struct {
 	Title       string `json:"title,omitempty"`
 	Description string `json:"description,omitempty"`
 	Volumes     uint16 `json:"volumes,omitempty"`
-	// Id_cartoonmad uint32    `json:"id_cartoonmad,omitempty"`
 }
 
 func (media *Novel) Test() {

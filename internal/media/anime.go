@@ -13,7 +13,7 @@ type Anime struct {
 	Episodes    uint16   `json:"episodes,omitempty"`
 	Videos      []string `json:"videos,omitempty"`
 	ExEpisodes  []uint32 `json:"exepisodes,omitempty"`
-	Id_if101    uint32   `json:"id_if101,omitempty"`
+	If101Id    uint32   `json:"id_if101,omitempty"`
 }
 
 func (media *Anime) Test() {
@@ -21,7 +21,7 @@ func (media *Anime) Test() {
 }
 
 func (media *Anime) String() string {
-	return fmt.Sprintf("\n  [作品] ID:%6d 類型:%s\n  - 標題:%s\n  - 簡介:%s\n  - if101ID:%6d\n  - Videos:%v\n  - ExEpisodes:%v", media.Id, ANIME, media.Title, media.Description, media.Id_if101, media.Videos, media.ExEpisodes)
+	return fmt.Sprintf("\n  [作品] ID:%6d 類型:%s\n  - 標題:%s\n  - 簡介:%s\n  - if101ID:%6d\n  - Videos:%v\n  - ExEpisodes:%v", media.Id, ANIME, media.Title, media.Description, media.If101Id, media.Videos, media.ExEpisodes)
 }
 
 func (media *Anime) GetId() uint32 {
@@ -64,8 +64,8 @@ func (anime *Anime) GetExEpisodes() []uint32 {
 	return anime.ExEpisodes
 }
 
-func (anime *Anime) GetId_if101() uint32 {
-	return anime.Id_if101
+func (anime *Anime) GetIf101Id() uint32 {
+	return anime.If101Id
 }
 
 func (anime *Anime) Write(fileWriter *fastio.FileWriter) {

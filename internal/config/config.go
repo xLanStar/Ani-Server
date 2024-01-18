@@ -3,7 +3,6 @@ package config
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -15,13 +14,10 @@ type Config struct {
 		Host string `yaml:"host"`
 		Port string `yaml:"port"`
 	} `yaml:"server"`
-	WebFolder   string `yaml:"webFolder"`
-	MediaFolder string `yaml:"mediaFolder"`
-	// MediaFile     string `yaml:"mediaFile"`
-	UserFolder string `yaml:"userFolder"`
-	// UserFile      string `yaml:"userFile"`
-	ReviewFolder string `yaml:"reviewFolder"`
-	// ReviewFile    string `yaml:"reviewFile"`
+	WebFolder     string `yaml:"webFolder"`
+	MediaFolder   string `yaml:"mediaFolder"`
+	UserFolder    string `yaml:"userFolder"`
+	ReviewFolder  string `yaml:"reviewFolder"`
 	ProfileFolder string `yaml:"profileFolder"`
 	DataFile      string `yaml:"dataFile"`
 }
@@ -56,7 +52,7 @@ func (config *Config) Save(configPath string) {
 		log.Fatal(err)
 	}
 
-	err2 := ioutil.WriteFile(configPath, data, 0)
+	err2 := os.WriteFile(configPath, data, 0)
 
 	if err2 != nil {
 		log.Fatal(err)

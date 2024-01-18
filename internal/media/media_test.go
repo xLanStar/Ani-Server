@@ -43,7 +43,6 @@ func Benchmark_NormalSwitch(b *testing.B) {
 func Benchmark_TypeSwitch(b *testing.B) {
 	var fileWriter fastio.FileWriter
 	fileWriter.Init()
-	// fileWriter.OpenFile("test2", os.O_WRONLY|os.O_CREATE, 0466)
 	anime := &Anime{Id: 1234, Description: "1234", Title: "1234"}
 	manga := &Manga{Id: 1234, Description: "1234", Title: "1234"}
 	novel := &Novel{Id: 1234, Description: "1234", Title: "1234"}

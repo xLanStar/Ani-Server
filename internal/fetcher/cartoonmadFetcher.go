@@ -41,7 +41,7 @@ func initCartoonmadDetail() {
 }
 
 func FetchCartoonmadDetail(media *Media.Manga) error {
-	if media == nil || media.Id_cartoonmad == 0 {
+	if media == nil || media.CartoonmadId == 0 {
 		return nil
 	}
 
@@ -51,8 +51,8 @@ func FetchCartoonmadDetail(media *Media.Manga) error {
 		initCartoonmadDetail()
 	}
 
-	fmt.Println(fmt.Sprintf(cartoonmadDetailUrlFormat, media.Id_cartoonmad))
-	cartoonmadDetailC.Visit(fmt.Sprintf(cartoonmadDetailUrlFormat, media.Id_cartoonmad))
+	fmt.Println(fmt.Sprintf(cartoonmadDetailUrlFormat, media.CartoonmadId))
+	cartoonmadDetailC.Visit(fmt.Sprintf(cartoonmadDetailUrlFormat, media.CartoonmadId))
 
 	if len(cartoonmadDetailResult) != 0 {
 		media.Volumes = make([]uint32, len(cartoonmadDetailResult))

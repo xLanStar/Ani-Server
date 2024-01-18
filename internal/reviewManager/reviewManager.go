@@ -4,7 +4,6 @@ import (
 	"Ani-Server/internal/alert"
 	"Ani-Server/internal/userManager"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 
@@ -27,7 +26,7 @@ func Load(ReviewFolder string, ReviewCount uint32) {
 	reviewFolder = ReviewFolder
 	reviewCount = ReviewCount
 
-	userReviewFolders, err := ioutil.ReadDir(reviewFolder)
+	userReviewFolders, err := os.ReadDir(reviewFolder)
 	if err != nil {
 		return
 	}
@@ -52,7 +51,7 @@ func Load(ReviewFolder string, ReviewCount uint32) {
 			userMap[uint32(userId)] = make(map[uint32]*Review)
 		}
 
-		userReviewFiles, err := ioutil.ReadDir(reviewFolder + userReviewFolder.Name() + "/")
+		userReviewFiles, err := os.ReadDir(reviewFolder + userReviewFolder.Name() + "/")
 		if err != nil {
 			return
 		}

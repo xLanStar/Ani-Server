@@ -1,0 +1,9 @@
+server:
+  host: ""
+  port: "8050"
+webFolder: ./web/
+mediaFolder: ./media/
+userFolder: ./user/
+reviewFolder: ./review/
+profileFolder: ./profile/
+dataFile: ./data.bin

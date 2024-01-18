@@ -3,7 +3,7 @@ package fetcher
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -26,11 +26,7 @@ func (poster *Poster) Post() ([]byte, error) {
 		return nil, err
 	}
 
-	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes, err := io.ReadAll(resp.Body)
 
 	return bytes, err
 }
-
-// func (poster *Poster) Clear() {
-// 	poster.Data = make(map[string]interface{})
-// }

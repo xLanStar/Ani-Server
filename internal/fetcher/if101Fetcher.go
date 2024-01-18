@@ -14,7 +14,7 @@ import (
 
 type If101Link struct {
 	Name     string
-	Str_Id   string
+	IdStr    string
 	UpdateAt uint32
 }
 type videoSource struct {
@@ -35,83 +35,83 @@ var (
 	detailC *colly.Collector
 
 	// 搜尋 Search
-	buffer_Search_links_if101 []If101Link
-	temp_Search_links_if101   []If101Link
+	bufferSearchLinksIf101 []If101Link
+	tempSearchLinksIf101   []If101Link
 
 	// 更新 Update
-	buffer_Update_links_if101 []If101Link
-	temp_Update_links_if101   []If101Link
+	bufferUpdateLinksIf101 []If101Link
+	tempUpdateLinksIf101   []If101Link
 
 	// 資訊 Detail
-	buffer_videoSources_if101 []videoSource
-	temp_videoSources_if101   []videoSource
+	bufferVideoSourcesIf101 []videoSource
+	tempVideoSourcesIf101   []videoSource
 )
 
 func initUpdateFetcher() {
-	buffer_Update_links_if101 = make([]If101Link, 100)
+	bufferUpdateLinksIf101 = make([]If101Link, 100)
 
 	// if101 取得資訊
 	updateC = colly.NewCollector()
 	updateC.OnHTML(".stui-vodlist .clearfix", func(e *colly.HTMLElement) {
-		s_UpdateAt := e.ChildText("span.time")
+		sUpdateAt := e.ChildText("span.time")
 
-		if len(s_UpdateAt) < 16 {
+		if len(sUpdateAt) < 16 {
 			return
 		}
 
-		s_id_if101 := e.ChildAttr("a[title]", "href")
+		sIf101Id := e.ChildAttr("a[title]", "href")
 
 		var updateAt uint32 = 0
 
-		for _, c := range s_UpdateAt[:13] {
+		for _, c := range sUpdateAt[:13] {
 			if '0' <= c && c <= '9' {
 				updateAt = (updateAt << 3) + (updateAt << 1) + uint32(c-'0')
 			}
 		}
 
 		var link If101Link = If101Link{
-			Str_Id:   s_id_if101[25 : len(s_id_if101)-5],
+			IdStr:    sIf101Id[25 : len(sIf101Id)-5],
 			Name:     e.ChildAttr("a[title]", "title"),
 			UpdateAt: updateAt,
 		}
 
-		temp_Update_links_if101 = append(temp_Update_links_if101, link)
+		tempUpdateLinksIf101 = append(tempUpdateLinksIf101, link)
 	})
 }
 
 func InitSearchFetcher() {
-	buffer_Search_links_if101 = make([]If101Link, 100)
+	bufferSearchLinksIf101 = make([]If101Link, 100)
 
 	// if101 取得資訊
 	searchC = colly.NewCollector()
 	searchC.OnHTML(".stui-vodlist .clearfix", func(e *colly.HTMLElement) {
-		s_UpdateAt := e.ChildText("span.time")
+		sUpdateAt := e.ChildText("span.time")
 
-		if len(s_UpdateAt) < 16 {
+		if len(sUpdateAt) < 16 {
 			return
 		}
 
-		s_id_if101 := e.ChildAttr("a[title]", "href")
+		sIf101Id := e.ChildAttr("a[title]", "href")
 
 		var updateAt uint32 = 0
 
-		for _, c := range s_UpdateAt[:13] {
+		for _, c := range sUpdateAt[:13] {
 			if '0' <= c && c <= '9' {
 				updateAt = (updateAt << 3) + (updateAt << 1) + uint32(c-'0')
 			}
 		}
 
 		var link If101Link = If101Link{
-			Str_Id:   s_id_if101[25 : len(s_id_if101)-5],
+			IdStr:    sIf101Id[25 : len(sIf101Id)-5],
 			Name:     e.ChildAttr("a[title]", "title"),
 			UpdateAt: updateAt,
 		}
 
-		temp_Search_links_if101 = append(temp_Search_links_if101, link)
+		tempSearchLinksIf101 = append(tempSearchLinksIf101, link)
 	})
 }
 func initDetailFetcher() {
-	buffer_videoSources_if101 = make([]videoSource, 1200)
+	bufferVideoSourcesIf101 = make([]videoSource, 1200)
 
 	// if101 取得資訊
 	detailC = colly.NewCollector()
@@ -132,53 +132,47 @@ func initDetailFetcher() {
 				video.name = name
 			}
 
-			temp_videoSources_if101 = append(temp_videoSources_if101, video)
+			tempVideoSourcesIf101 = append(tempVideoSourcesIf101, video)
 		})
 	})
 }
 
 // 搜尋指定的關鍵字，並回傳所有的連結
 func SearchIf101Links(search string) []If101Link {
-	if len(buffer_Search_links_if101) == 0 {
+	if len(bufferSearchLinksIf101) == 0 {
 		fmt.Println("if101 init")
 		InitSearchFetcher()
 	}
 
-	temp_Search_links_if101 = buffer_Update_links_if101[0:0]
+	tempSearchLinksIf101 = bufferUpdateLinksIf101[0:0]
 
 	searchC.Visit(fmt.Sprintf(if101SearchUrlFormat, search))
 
-	// result := make([]If101Link, len(temp_Search_links_if101))
-
-	// for i := 0; i != len(temp_Search_links_if101); i++ {
-	// 	result[i] = temp_Search_links_if101[i]
-	// }
-
-	return temp_Search_links_if101
+	return tempSearchLinksIf101
 }
 
 // 以指定的時間為基準，將所有此時間點以後的 if101 id 傳回
 func GetUpdatedIds(lastUpdateAt uint32) []uint32 {
-	if len(buffer_Update_links_if101) == 0 {
+	if len(bufferUpdateLinksIf101) == 0 {
 		initUpdateFetcher()
 	}
 
 	var result []uint32 = make([]uint32, 0, 50)
 
 	for page, breakpoint := 1, false; !breakpoint; page++ {
-		temp_Update_links_if101 = buffer_Update_links_if101[0:0]
+		tempUpdateLinksIf101 = bufferUpdateLinksIf101[0:0]
 
 		updateC.Visit(fmt.Sprintf(if101UpdateUrlFormat, page))
 
-		for _, link := range temp_Update_links_if101 {
+		for _, link := range tempUpdateLinksIf101 {
 			if link.UpdateAt < lastUpdateAt {
 				breakpoint = true
 				continue
 			}
 
-			id_if101, _ := strconv.Atoi(link.Str_Id)
+			idIf101, _ := strconv.Atoi(link.IdStr)
 
-			result = append(result, uint32(id_if101))
+			result = append(result, uint32(idIf101))
 		}
 	}
 
@@ -188,54 +182,54 @@ func GetUpdatedIds(lastUpdateAt uint32) []uint32 {
 // 基於以建置之 Media，填入 if101 資源
 // 回傳 (是否有更新, 錯誤)
 func FetchIf101Details(anime *media.Anime) bool {
-	if anime.Id_if101 == 0 {
+	if anime.If101Id == 0 {
 		return false
 	}
 
-	if buffer_videoSources_if101 == nil {
+	if bufferVideoSourcesIf101 == nil {
 		initDetailFetcher()
 	}
 
-	temp_videoSources_if101 = buffer_videoSources_if101[0:0]
+	tempVideoSourcesIf101 = bufferVideoSourcesIf101[0:0]
 
-	detailC.Visit(fmt.Sprintf(if101DetailUrlFormat, anime.Id_if101))
+	detailC.Visit(fmt.Sprintf(if101DetailUrlFormat, anime.If101Id))
 
-	var temp_episodes_if101 = uint16(len(temp_videoSources_if101))
+	var tempEpisodesIf101 = uint16(len(tempVideoSourcesIf101))
 
-	if (anime.Episodes & 32767) == temp_episodes_if101 {
-		fmt.Printf("此作品 ID:%d 在 if101 ID:%d 的資源並沒有更新 集數:%d\n", anime.Id, anime.Id_if101, temp_episodes_if101)
+	if (anime.Episodes & 32767) == tempEpisodesIf101 {
+		fmt.Printf("此作品 ID:%d 在 if101 ID:%d 的資源並沒有更新 集數:%d\n", anime.Id, anime.If101Id, tempEpisodesIf101)
 
 		return false
 	}
 
-	anime.Episodes = temp_episodes_if101
+	anime.Episodes = tempEpisodesIf101
 
 	if anime.Episodes != 0 {
 		anime.Videos = make([]string, 0, anime.Episodes)
 
-		sort.SliceStable(temp_videoSources_if101, func(i, j int) bool {
-			if temp_videoSources_if101[i].isNumber && temp_videoSources_if101[j].isNumber {
-				return temp_videoSources_if101[i].name.(float64) < temp_videoSources_if101[j].name.(float64)
-			} else if temp_videoSources_if101[i].isNumber {
+		sort.SliceStable(tempVideoSourcesIf101, func(i, j int) bool {
+			if tempVideoSourcesIf101[i].isNumber && tempVideoSourcesIf101[j].isNumber {
+				return tempVideoSourcesIf101[i].name.(float64) < tempVideoSourcesIf101[j].name.(float64)
+			} else if tempVideoSourcesIf101[i].isNumber {
 				return true
-			} else if temp_videoSources_if101[j].isNumber {
+			} else if tempVideoSourcesIf101[j].isNumber {
 				return false
 			} else {
-				return temp_videoSources_if101[i].name.(string) < temp_videoSources_if101[j].name.(string)
+				return tempVideoSourcesIf101[i].name.(string) < tempVideoSourcesIf101[j].name.(string)
 			}
 		})
 
-		for _, episode := range temp_videoSources_if101 {
+		for _, episode := range tempVideoSourcesIf101 {
 			anime.Videos = append(anime.Videos, episode.video)
 		}
 
-		var last_Episode_if101 uint32 = 0
+		var last_EpisodeIf101 uint32 = 0
 
 		counter := make([]uint32, 8)
 
 		anime.ExEpisodes = make([]uint32, 0)
 
-		for i, episode := range temp_videoSources_if101 {
+		for i, episode := range tempVideoSourcesIf101 {
 			if episode.isNumber {
 				f_episode := episode.name.(float64)
 				C_episode := math.Trunc(f_episode)
@@ -244,28 +238,28 @@ func FetchIf101Details(anime *media.Anime) bool {
 				if f_episode != C_episode {
 					anime.ExEpisodes = append(anime.ExEpisodes, (media.HALF32<<29)+(I_episode<<16)+uint32(i))
 					continue
-				} else if I_episode-last_Episode_if101 > 1 {
-					if I_episode < last_Episode_if101 {
-						log.Fatal(anime, temp_videoSources_if101, f_episode, last_Episode_if101)
+				} else if I_episode-last_EpisodeIf101 > 1 {
+					if I_episode < last_EpisodeIf101 {
+						log.Fatal(anime, tempVideoSourcesIf101, f_episode, last_EpisodeIf101)
 					}
-					anime.ExEpisodes = append(anime.ExEpisodes, (media.OFFSET32<<29)+((I_episode-last_Episode_if101)<<16)+uint32(i))
+					anime.ExEpisodes = append(anime.ExEpisodes, (media.OFFSET32<<29)+((I_episode-last_EpisodeIf101)<<16)+uint32(i))
 				} else if f_episode == 1 && i == len(anime.ExEpisodes) {
 					anime.Episodes |= 1 << 15
 				}
 
-				last_Episode_if101 = I_episode
+				last_EpisodeIf101 = I_episode
 
 				continue
 			}
 
-			s_episode := episode.name.(string)
+			sEpisode := episode.name.(string)
 
-			if len(s_episode) >= 2 {
-				if s_episode[:2] == "SP" {
+			if len(sEpisode) >= 2 {
+				if sEpisode[:2] == "SP" {
 					ok := false
 
-					if len(s_episode) > 2 {
-						if n_episode, err := strconv.Atoi(s_episode[2:]); err != nil {
+					if len(sEpisode) > 2 {
+						if n_episode, err := strconv.Atoi(sEpisode[2:]); err != nil {
 							counter[media.SP32] = uint32(n_episode)
 							ok = true
 						}
@@ -277,19 +271,19 @@ func FetchIf101Details(anime *media.Anime) bool {
 
 					anime.ExEpisodes = append(anime.ExEpisodes, (media.SP32<<29)+(counter[media.SP]<<16)+uint32(i))
 					continue
-				} else if s_episode[len(s_episode)-2:] == ".5" {
-					n_episode, _ := strconv.Atoi(s_episode[:len(s_episode)-2])
+				} else if sEpisode[len(sEpisode)-2:] == ".5" {
+					n_episode, _ := strconv.Atoi(sEpisode[:len(sEpisode)-2])
 					anime.ExEpisodes = append(anime.ExEpisodes, (media.HALF32<<29)+(uint32(n_episode)<<16)+uint32(i))
 					continue
 				}
 			}
 
-			if len(s_episode) >= 3 {
-				if s_episode[:3] == "OVA" {
+			if len(sEpisode) >= 3 {
+				if sEpisode[:3] == "OVA" {
 					ok := false
 
-					if len(s_episode) > 3 {
-						if n_episode, err := strconv.Atoi(s_episode[3:]); err != nil {
+					if len(sEpisode) > 3 {
+						if n_episode, err := strconv.Atoi(sEpisode[3:]); err != nil {
 							counter[media.OVA] = uint32(n_episode)
 							ok = true
 						}
@@ -301,11 +295,11 @@ func FetchIf101Details(anime *media.Anime) bool {
 
 					anime.ExEpisodes = append(anime.ExEpisodes, (media.OVA32<<29)+(counter[media.OVA]<<16)+uint32(i))
 					continue
-				} else if s_episode[:3] == "OAD" {
+				} else if sEpisode[:3] == "OAD" {
 					ok := false
 
-					if len(s_episode) > 3 {
-						if n_episode, err := strconv.Atoi(s_episode[3:]); err != nil {
+					if len(sEpisode) > 3 {
+						if n_episode, err := strconv.Atoi(sEpisode[3:]); err != nil {
 							counter[media.OAD] = uint32(n_episode)
 							ok = true
 						}
@@ -320,12 +314,12 @@ func FetchIf101Details(anime *media.Anime) bool {
 				}
 			}
 
-			if len(s_episode) >= 9 {
-				if s_episode[:9] == "劇場版" || s_episode[:9] == "剧场版" {
+			if len(sEpisode) >= 9 {
+				if sEpisode[:9] == "劇場版" || sEpisode[:9] == "剧场版" {
 					ok := false
 
-					if len(s_episode) > 9 {
-						if n_episode, err := strconv.Atoi(s_episode[9:]); err != nil {
+					if len(sEpisode) > 9 {
+						if n_episode, err := strconv.Atoi(sEpisode[9:]); err != nil {
 							counter[media.MOVIE] = uint32(n_episode)
 							ok = true
 						}

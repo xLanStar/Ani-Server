@@ -3,7 +3,6 @@ package userManager
 import (
 	"Ani-Server/internal/alert"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 
@@ -25,7 +24,7 @@ func Load(UserFolder string, UserCount uint32) {
 	userFolder = UserFolder
 	userCount = UserCount
 
-	userFiles, err := ioutil.ReadDir(UserFolder)
+	userFiles, err := os.ReadDir(UserFolder)
 	if err != nil {
 		return
 	}
@@ -33,9 +32,6 @@ func Load(UserFolder string, UserCount uint32) {
 	var fileReader fastio.FileReader
 
 	fileReader.Init()
-
-	// userCount = 1
-	// fmt.Println("[UserManager] userCount:", userCount)
 
 	var userptr *User
 	for _, userFile := range userFiles {
@@ -100,8 +96,6 @@ func Save() {
 		}
 
 		fileWriter.OpenFile(userFolder+strconv.Itoa(int(user.Id)), os.O_WRONLY|os.O_CREATE, 0666)
-
-		// user := idMap[uint32(userId)]
 
 		fmt.Printf("[UserManager] 保存帳號%s\n", user)
 

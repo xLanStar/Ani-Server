@@ -107,8 +107,8 @@ func UpdateIf101(lastUpdateAt uint32) {
 
 	var updatedIdsIf101 []uint32 = fetcher.GetUpdatedIds(lastUpdateAt)
 
-	for _, id_if101 := range updatedIdsIf101 {
-		if mediaId, ok := if101Map[id_if101]; ok {
+	for _, if101Id := range updatedIdsIf101 {
+		if mediaId, ok := if101Map[if101Id]; ok {
 			changed := fetcher.FetchIf101Details(idMap[mediaId].(*Media.Anime))
 
 			if changed {
@@ -129,16 +129,18 @@ func GetSimpleMediaInfo(mediaIds []uint32) (map[uint32]string, []uint32) {
 	hasResources := make([]uint32, 0, 40)
 
 	for _, mediaId := range mediaIds {
-		if media, ok := idMap[mediaId]; ok {
-			titles[mediaId] = media.GetTitle()
-			if media.GetType() == Media.ANIME {
-				if media.(*Media.Anime).Episodes != 0 {
-					hasResources = append(hasResources, mediaId)
-				}
-			} else if media.GetType() == Media.MANGA {
-				if len(media.(*Media.Manga).Volumes) != 0 {
-					hasResources = append(hasResources, mediaId)
-				}
+		media, ok := idMap[mediaId]
+		if !ok {
+			continue
+		}
+		titles[mediaId] = media.GetTitle()
+		if media.GetType() == Media.ANIME {
+			if media.(*Media.Anime).Episodes != 0 {
+				hasResources = append(hasResources, mediaId)
+			}
+		} else if media.GetType() == Media.MANGA {
+			if len(media.(*Media.Manga).Volumes) != 0 {
+				hasResources = append(hasResources, mediaId)
 			}
 		}
 	}
@@ -151,6 +153,27 @@ func HasMediaId(mediaId uint32) bool {
 	return ok
 }
 
+func CreateMedia(mediaId uint32, mediaType Media.MediaType) {
+	// 系統手動建置資料
+	if mediaType == Media.ANIME {
+		idMap[mediaId] = &Media.Anime{Id: mediaId}
+	} else if mediaType == Media.MANGA {
+		idMap[mediaId] = &Media.Manga{Id: mediaId}
+	} else if mediaType == Media.NOVEL {
+		idMap[mediaId] = &Media.Novel{Id: mediaId}
+	}
+}
+
+func RecreateMedia(mediaId uint32, mediaType Media.MediaType) {
+	if mediaType == Media.ANIME {
+		idMap[mediaId] = &Media.Anime{Id: mediaId, Title: idMap[mediaId].GetTitle(), Description: idMap[mediaId].GetDescription()}
+	} else if mediaType == Media.MANGA {
+		idMap[mediaId] = &Media.Manga{Id: mediaId, Title: idMap[mediaId].GetTitle(), Description: idMap[mediaId].GetDescription()}
+	} else if mediaType == Media.NOVEL {
+		idMap[mediaId] = &Media.Novel{Id: mediaId, Title: idMap[mediaId].GetTitle(), Description: idMap[mediaId].GetDescription()}
+	}
+}
+
 func GetMediaById(mediaId uint32) Media.IMedia {
 	return idMap[mediaId]
 }
@@ -158,34 +181,24 @@ func GetMediaById(mediaId uint32) Media.IMedia {
 func EditMedia(mediaId uint32, mediaType Media.MediaType, data map[string]interface{}) {
 	fmt.Printf("[MediaManager] 編輯作品ID:%6d  類型:%s\n", mediaId, mediaType)
 
-	// 建置 / 取得作品
-	if _, ok := idMap[mediaId]; !ok {
-		fmt.Printf("    作品不存在，即將建置一個作品類型:%v\n", mediaType)
-
+	if !HasMediaId(mediaId) {
 		// 嘗試用 anilist
 		_, err := FetchMediaById(mediaId)
 
 		if err != nil {
-			// 系統手動建置資料
-			if mediaType == Media.ANIME {
-				idMap[mediaId] = &Media.Anime{Id: mediaId}
-			} else if mediaType == Media.MANGA {
-				idMap[mediaId] = &Media.Manga{Id: mediaId}
-			} else if mediaType == Media.NOVEL {
-				idMap[mediaId] = &Media.Novel{Id: mediaId}
-			}
+			CreateMedia(mediaId, mediaType)
 		}
+	}
+
+	// 建置 / 取得作品
+	if _, ok := idMap[mediaId]; !ok {
+		fmt.Printf("    作品不存在，即將建置一個作品類型:%v\n", mediaType)
+
 	}
 
 	if idMap[mediaId].GetType() != mediaType {
 		fmt.Printf("    發現作品類型錯誤，即將修正作品類型:%v\n", idMap[mediaId].GetType())
-		if mediaType == Media.ANIME {
-			idMap[mediaId] = &Media.Anime{Id: mediaId, Title: idMap[mediaId].GetTitle(), Description: idMap[mediaId].GetDescription()}
-		} else if mediaType == Media.MANGA {
-			idMap[mediaId] = &Media.Manga{Id: mediaId, Title: idMap[mediaId].GetTitle(), Description: idMap[mediaId].GetDescription()}
-		} else if mediaType == Media.NOVEL {
-			idMap[mediaId] = &Media.Novel{Id: mediaId, Title: idMap[mediaId].GetTitle(), Description: idMap[mediaId].GetDescription()}
-		}
+		RecreateMedia(mediaId, mediaType)
 	}
 
 	// 編輯作品
@@ -204,43 +217,43 @@ func EditMedia(mediaId uint32, mediaType Media.MediaType, data map[string]interf
 	}
 
 	if media.GetType() == Media.ANIME {
-
-		anime := media.(*Media.Anime)
-
-		if id_if101, ok := data["id_if101"]; ok {
-			fmt.Printf("    [ID_if101]\n    %6d\n  ->%6d\n", anime.If101Id, uint32(id_if101.(float64)))
-
-			fmt.Println("原本:", anime)
-
-			anime.If101Id = uint32(id_if101.(float64))
-			anime.Videos = make([]string, 0)
-			anime.Episodes = 0
-			anime.ExEpisodes = make([]uint32, 0)
-
-			if anime.If101Id != 0 {
-				changed := fetcher.FetchIf101Details(anime)
-
-				if !changed {
-					fmt.Println("作品並沒有更新if101detail")
-				} else {
-					fmt.Println("更新後:", anime)
-				}
-			}
-		}
+		editAnime(media.(*Media.Anime), data)
 	} else {
-
-		manga := media.(*Media.Manga)
-
-		if cartoonmadId, ok := data["id_cartoonmad"]; ok {
-			fmt.Printf("    [ID_cartoonmad]\n    %6d\n  ->%6d\n", manga.CartoonmadId, uint32(cartoonmadId.(float64)))
-			manga.CartoonmadId = uint32(cartoonmadId.(float64))
-			manga.Volumes = make([]uint32, 0)
-
-			if manga.CartoonmadId != 0 {
-				fetcher.FetchCartoonmadDetail(manga)
-			}
-		}
+		editManga(media.(*Media.Manga), data)
 	}
 
 	change[mediaId] = true
+}
+
+func editAnime(anime *Media.Anime, data map[string]interface{}) {
+	if if101Id, ok := data["id_if101"]; ok {
+		fmt.Printf("    [ID_if101]\n    %6d\n  ->%6d\n", anime.If101Id, uint32(if101Id.(float64)))
+
+		fmt.Println("原本:", anime)
+
+		anime.If101Id = uint32(if101Id.(float64))
+		anime.Videos = make([]string, 0)
+		anime.Episodes = 0
+		anime.ExEpisodes = make([]uint32, 0)
+
+		if anime.If101Id != 0 {
+			if !fetcher.FetchIf101Details(anime) {
+				fmt.Println("作品並沒有更新if101detail")
+			} else {
+				fmt.Println("更新後:", anime)
+			}
+		}
+	}
+}
+
+func editManga(manga *Media.Manga, data map[string]interface{}) {
+	if cartoonmadId, ok := data["id_cartoonmad"]; ok {
+		fmt.Printf("    [ID_cartoonmad]\n    %6d\n  ->%6d\n", manga.CartoonmadId, uint32(cartoonmadId.(float64)))
+		manga.CartoonmadId = uint32(cartoonmadId.(float64))
+		manga.Volumes = make([]uint32, 0)
+
+		if manga.CartoonmadId != 0 {
+			fetcher.FetchCartoonmadDetail(manga)
+		}
+	}
 }

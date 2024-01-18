@@ -13,7 +13,7 @@ type Anime struct {
 	Episodes    uint16   `json:"episodes,omitempty"`
 	Videos      []string `json:"videos,omitempty"`
 	ExEpisodes  []uint32 `json:"exepisodes,omitempty"`
-	If101Id    uint32   `json:"id_if101,omitempty"`
+	If101Id     uint32   `json:"id_if101,omitempty"`
 }
 
 func (media *Anime) Test() {

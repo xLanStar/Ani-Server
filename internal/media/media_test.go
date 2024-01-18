@@ -21,7 +21,7 @@ func TestMediaType(t *testing.T) {
 	fileWriter.Flush()
 }
 
-func Benchmark_NormalSwitch(b *testing.B) {
+func BenchmarkNormalSwitch(b *testing.B) {
 	var fileWriter fastio.FileWriter
 	fileWriter.Init()
 	// fileWriter.OpenFile("test1", os.O_WRONLY|os.O_CREATE, 0466)
@@ -40,7 +40,7 @@ func Benchmark_NormalSwitch(b *testing.B) {
 	}
 }
 
-func Benchmark_TypeSwitch(b *testing.B) {
+func BenchmarkTypeSwitch(b *testing.B) {
 	var fileWriter fastio.FileWriter
 	fileWriter.Init()
 	anime := &Anime{Id: 1234, Description: "1234", Title: "1234"}

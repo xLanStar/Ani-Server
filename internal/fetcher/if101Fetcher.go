@@ -223,7 +223,7 @@ func FetchIf101Details(anime *media.Anime) bool {
 			anime.Videos = append(anime.Videos, episode.video)
 		}
 
-		var last_EpisodeIf101 uint32 = 0
+		var lastEpisodeIf101 uint32 = 0
 
 		counter := make([]uint32, 8)
 
@@ -231,23 +231,23 @@ func FetchIf101Details(anime *media.Anime) bool {
 
 		for i, episode := range tempVideoSourcesIf101 {
 			if episode.isNumber {
-				f_episode := episode.name.(float64)
-				C_episode := math.Trunc(f_episode)
-				I_episode := uint32(C_episode)
+				fEpisode := episode.name.(float64)
+				CEpisode := math.Trunc(fEpisode)
+				IEpisode := uint32(CEpisode)
 
-				if f_episode != C_episode {
-					anime.ExEpisodes = append(anime.ExEpisodes, (media.HALF32<<29)+(I_episode<<16)+uint32(i))
+				if fEpisode != CEpisode {
+					anime.ExEpisodes = append(anime.ExEpisodes, (media.HALF32<<29)+(IEpisode<<16)+uint32(i))
 					continue
-				} else if I_episode-last_EpisodeIf101 > 1 {
-					if I_episode < last_EpisodeIf101 {
-						log.Fatal(anime, tempVideoSourcesIf101, f_episode, last_EpisodeIf101)
+				} else if IEpisode-lastEpisodeIf101 > 1 {
+					if IEpisode < lastEpisodeIf101 {
+						log.Fatal(anime, tempVideoSourcesIf101, fEpisode, lastEpisodeIf101)
 					}
-					anime.ExEpisodes = append(anime.ExEpisodes, (media.OFFSET32<<29)+((I_episode-last_EpisodeIf101)<<16)+uint32(i))
-				} else if f_episode == 1 && i == len(anime.ExEpisodes) {
+					anime.ExEpisodes = append(anime.ExEpisodes, (media.OFFSET32<<29)+((IEpisode-lastEpisodeIf101)<<16)+uint32(i))
+				} else if fEpisode == 1 && i == len(anime.ExEpisodes) {
 					anime.Episodes |= 1 << 15
 				}
 
-				last_EpisodeIf101 = I_episode
+				lastEpisodeIf101 = IEpisode
 
 				continue
 			}
@@ -259,8 +259,8 @@ func FetchIf101Details(anime *media.Anime) bool {
 					ok := false
 
 					if len(sEpisode) > 2 {
-						if n_episode, err := strconv.Atoi(sEpisode[2:]); err != nil {
-							counter[media.SP32] = uint32(n_episode)
+						if nEpisode, err := strconv.Atoi(sEpisode[2:]); err != nil {
+							counter[media.SP32] = uint32(nEpisode)
 							ok = true
 						}
 					}
@@ -272,8 +272,8 @@ func FetchIf101Details(anime *media.Anime) bool {
 					anime.ExEpisodes = append(anime.ExEpisodes, (media.SP32<<29)+(counter[media.SP]<<16)+uint32(i))
 					continue
 				} else if sEpisode[len(sEpisode)-2:] == ".5" {
-					n_episode, _ := strconv.Atoi(sEpisode[:len(sEpisode)-2])
-					anime.ExEpisodes = append(anime.ExEpisodes, (media.HALF32<<29)+(uint32(n_episode)<<16)+uint32(i))
+					nEpisode, _ := strconv.Atoi(sEpisode[:len(sEpisode)-2])
+					anime.ExEpisodes = append(anime.ExEpisodes, (media.HALF32<<29)+(uint32(nEpisode)<<16)+uint32(i))
 					continue
 				}
 			}
@@ -283,8 +283,8 @@ func FetchIf101Details(anime *media.Anime) bool {
 					ok := false
 
 					if len(sEpisode) > 3 {
-						if n_episode, err := strconv.Atoi(sEpisode[3:]); err != nil {
-							counter[media.OVA] = uint32(n_episode)
+						if nEpisode, err := strconv.Atoi(sEpisode[3:]); err != nil {
+							counter[media.OVA] = uint32(nEpisode)
 							ok = true
 						}
 					}
@@ -299,8 +299,8 @@ func FetchIf101Details(anime *media.Anime) bool {
 					ok := false
 
 					if len(sEpisode) > 3 {
-						if n_episode, err := strconv.Atoi(sEpisode[3:]); err != nil {
-							counter[media.OAD] = uint32(n_episode)
+						if nEpisode, err := strconv.Atoi(sEpisode[3:]); err != nil {
+							counter[media.OAD] = uint32(nEpisode)
 							ok = true
 						}
 					}
@@ -319,8 +319,8 @@ func FetchIf101Details(anime *media.Anime) bool {
 					ok := false
 
 					if len(sEpisode) > 9 {
-						if n_episode, err := strconv.Atoi(sEpisode[9:]); err != nil {
-							counter[media.MOVIE] = uint32(n_episode)
+						if nEpisode, err := strconv.Atoi(sEpisode[9:]); err != nil {
+							counter[media.MOVIE] = uint32(nEpisode)
 							ok = true
 						}
 					}

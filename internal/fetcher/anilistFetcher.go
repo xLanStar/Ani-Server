@@ -5,6 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
+)
+
+const (
+	AnilistURL string = "https://trace.moe/anilist/"
 )
 
 // SECTION_TYPE: RAWMEDIA
@@ -48,7 +53,7 @@ func initSearchPoster() {
 			format
 		}
 	}`, "\n\r ")
-	searchPoster = Poster{Url: "https://trace.moe/anilist/", Data: Data{Query: searchQuery, Variables: make(map[string]interface{})}}
+	searchPoster = Poster{Url: AnilistURL, Data: Data{Query: searchQuery, Variables: make(map[string]interface{})}}
 }
 
 func initFetchPoster() {
@@ -64,7 +69,7 @@ func initFetchPoster() {
 			format
 		}
 	}`, "\n\r ")
-	fetchPoster = Poster{Url: "https://trace.moe/anilist/", Data: Data{Query: fetchQuery, Variables: make(map[string]interface{})}}
+	fetchPoster = Poster{Url: AnilistURL, Data: Data{Query: fetchQuery, Variables: make(map[string]interface{})}}
 }
 
 func initFetchMediasSortedIdPoster() {
@@ -82,7 +87,7 @@ func initFetchMediasSortedIdPoster() {
 			}
 		}
 	}`, "\n\r ")
-	fetchMediasSortedIdPoster = Poster{Url: "https://trace.moe/anilist/", Data: Data{Query: fetchIdQuery, Variables: make(map[string]interface{})}}
+	fetchMediasSortedIdPoster = Poster{Url: AnilistURL, Data: Data{Query: fetchIdQuery, Variables: make(map[string]interface{})}}
 }
 
 func initFetchMediasSortedUpdatePoster() {
@@ -101,7 +106,35 @@ func initFetchMediasSortedUpdatePoster() {
 			}
 		}
 	}`, "\n\r ")
-	fetchMediasSortedUpdatePoster = Poster{Url: "https://trace.moe/anilist/", Data: Data{Query: fetchUpdateQuery, Variables: make(map[string]interface{})}}
+	fetchMediasSortedUpdatePoster = Poster{Url: AnilistURL, Data: Data{Query: fetchUpdateQuery, Variables: make(map[string]interface{})}}
+}
+
+func AdvancedSearchMedia(titleJP string, titleALT []string) media.IMedia {
+	// 查詢作品演算法
+	for t := 0; t != 3; t++ {
+		var subs []string
+
+		if t == 0 {
+			subs = []string{titleJP}
+		} else if t == 1 {
+			subs = strings.Split(titleJP, " ")
+			if len(subs) != 0 {
+				subs = subs[:len(subs)-1]
+			}
+		} else if t == 2 {
+			subs = titleALT[:]
+		}
+
+		for _, sub := range subs {
+			time.Sleep(time.Second)
+
+			media, _ := SearchMedia(sub, seasonYear, season)
+			if media.GetId() != 0 {
+				return media
+			}
+		}
+	}
+	return nil
 }
 
 // SECTION_TYPE: SearchMedia

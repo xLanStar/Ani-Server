@@ -35,7 +35,7 @@ func Cors(c *gin.Context) {
 	c.Next()
 }
 
-func POST_API_TITLE_Handler(c *gin.Context) {
+func PostTITLEHandler(c *gin.Context) {
 	var data []uint32
 	c.Bind(&data)
 
@@ -58,7 +58,7 @@ func POST_API_TITLE_Handler(c *gin.Context) {
 mediaId 	uint32	: 作品ID
 relativeIds []uint32: 相關作品ID
 */
-func POST_API_MEDIA_Handler(c *gin.Context) {
+func PostMEDIAHandler(c *gin.Context) {
 	var data struct {
 		Id          uint32   `json:"id"`
 		RelativeIds []uint32 `json:"relativeIds"`
@@ -124,7 +124,7 @@ func POST_API_MEDIA_Handler(c *gin.Context) {
 id 	 uint32 				: 作品ID
 data map[string]interface{} : 編輯項目
 */
-func POST_API_EDITMEDIA_Handler(c *gin.Context) {
+func PostEDITMEDIAHandler(c *gin.Context) {
 	var data struct {
 		Id   uint32                 `json:"id"`
 		Type media.MediaType        `json:"type"`
@@ -158,7 +158,7 @@ func responseSimpleUserData(c *gin.Context, user *userManager.User) {
 }
 
 // login with token and response user
-func POST_API_VALIDATE_Handler(c *gin.Context) {
+func PostVALIDATEHandler(c *gin.Context) {
 	token, err := c.Cookie("token")
 
 	// 特殊例外: Validate 若接收到無 Token 請求，將忽略此請求
@@ -176,7 +176,7 @@ func POST_API_VALIDATE_Handler(c *gin.Context) {
 account 	string	: 帳號
 password 	string	: 密碼
 */
-func POST_API_LOGIN_Handler(c *gin.Context) {
+func PostLOGINHandler(c *gin.Context) {
 	var data struct {
 		Account  string `json:"account"`
 		Password string `json:"password"`
@@ -196,7 +196,7 @@ account 	string	: 帳號
 password 	string	: 密碼
 userName 	string	: 名稱
 */
-func POST_API_REGISTER_Handler(c *gin.Context) {
+func PostREGISTERHandler(c *gin.Context) {
 	var data struct {
 		Account  string `json:"account"`
 		Password string `json:"password"`
@@ -209,7 +209,7 @@ func POST_API_REGISTER_Handler(c *gin.Context) {
 }
 
 // logout and clear token
-func POST_API_LOGOUT_Handler(c *gin.Context) {
+func PostLOGOUTHandler(c *gin.Context) {
 	token, err := c.Cookie("token")
 	if err != nil {
 		panic(&alert.NotLoggedIn)
@@ -229,7 +229,7 @@ func POST_API_LOGOUT_Handler(c *gin.Context) {
 /*
 uint32 : 帳號ID
 */
-func GET_API_USER_Handler(c *gin.Context) {
+func GetUSERHandler(c *gin.Context) {
 	sUserId := c.Param("userid")
 
 	userId, err := strconv.Atoi(sUserId)
@@ -248,7 +248,7 @@ func GET_API_USER_Handler(c *gin.Context) {
 		"user": user,
 	})
 }
-func POST_API_USER_Handler(c *gin.Context) {
+func PostUSERHandler(c *gin.Context) {
 	var data struct {
 		Id uint32 `json:"id"`
 	}
@@ -268,7 +268,7 @@ func POST_API_USER_Handler(c *gin.Context) {
 /*
 uint32 : 作品ID
 */
-func POST_API_LIKEMEDIA_Handler(c *gin.Context) {
+func PostLIKEMEDIAHandler(c *gin.Context) {
 	var data struct {
 		Id uint32 `json:"id"`
 	}
@@ -294,7 +294,7 @@ func POST_API_LIKEMEDIA_Handler(c *gin.Context) {
 media 	uint32	: 作品ID
 review 	uint32	: 評論ID
 */
-func POST_API_LIKEREVIEW_Handler(c *gin.Context) {
+func PostLIKEREVIEWHandler(c *gin.Context) {
 	var data struct {
 		MediaId  uint32 `json:"media"`
 		ReviewId uint32 `json:"review"`
@@ -322,7 +322,7 @@ media 	uint32 	: 作品ID
 rank 	uint8	: 評級
 content string	: 內容
 */
-func POST_API_EDITREVIEW_Handler(c *gin.Context) {
+func PostEDITREVIEWHandler(c *gin.Context) {
 	var data struct {
 		Media   uint32             `json:"media"`
 		Rank    reviewManager.Rank `json:"rank"`
@@ -354,7 +354,7 @@ func POST_API_EDITREVIEW_Handler(c *gin.Context) {
 /*
 uint32 	: 作品ID
 */
-func POST_API_DELETEREVIEW_Handler(c *gin.Context) {
+func PostDELETEREVIEWHandler(c *gin.Context) {
 	var data struct {
 		Id uint32 `json:"id"`
 	}
@@ -390,13 +390,13 @@ func PanicHandler(c *gin.Context) {
 	c.Next()
 }
 
-func GET_API_PROFILE_Handler(c *gin.Context) {
+func GetPROFILEHandler(c *gin.Context) {
 	userid := c.Param("userid")
 
 	c.File(profileFolder + userid)
 }
 
-func POST_API_EDITUSER_Handler(c *gin.Context) {
+func PostEDITUSERHandler(c *gin.Context) {
 	// 使用者驗證
 	token, err := c.Cookie("token")
 	if err != nil {
@@ -436,21 +436,21 @@ func MapRouter(server *gin.Engine, memoryStore *persist.MemoryStore) {
 	server.Use(PanicHandler, Cors)
 
 	// routers
-	server.POST("/api/title/", POST_API_TITLE_Handler)
-	server.POST("/api/media/", POST_API_MEDIA_Handler)
-	server.POST("/api/editmedia/", POST_API_EDITMEDIA_Handler)
-	server.POST("/api/validate/", POST_API_VALIDATE_Handler)
-	server.POST("/api/login/", POST_API_LOGIN_Handler)
-	server.POST("/api/logout/", POST_API_LOGOUT_Handler)
-	server.POST("/api/register/", POST_API_REGISTER_Handler)
-	server.POST("/api/user/", POST_API_USER_Handler)
-	server.GET("/api/user/:userid/", GET_API_USER_Handler)
-	server.POST("/api/likemedia/", POST_API_LIKEMEDIA_Handler)
-	server.POST("/api/likereview/", POST_API_LIKEREVIEW_Handler)
-	server.POST("/api/editreview/", POST_API_EDITREVIEW_Handler)
-	server.POST("/api/deletereview/", POST_API_DELETEREVIEW_Handler)
-	server.GET("/api/profile/:userid/", GET_API_PROFILE_Handler)
-	server.POST("/api/edituser/", POST_API_EDITUSER_Handler)
+	server.POST("/api/title/", PostTITLEHandler)
+	server.POST("/api/media/", PostMEDIAHandler)
+	server.POST("/api/editmedia/", PostEDITMEDIAHandler)
+	server.POST("/api/validate/", PostVALIDATEHandler)
+	server.POST("/api/login/", PostLOGINHandler)
+	server.POST("/api/logout/", PostLOGOUTHandler)
+	server.POST("/api/register/", PostREGISTERHandler)
+	server.POST("/api/user/", PostUSERHandler)
+	server.GET("/api/user/:userid/", GetUSERHandler)
+	server.POST("/api/likemedia/", PostLIKEMEDIAHandler)
+	server.POST("/api/likereview/", PostLIKEREVIEWHandler)
+	server.POST("/api/editreview/", PostEDITREVIEWHandler)
+	server.POST("/api/deletereview/", PostDELETEREVIEWHandler)
+	server.GET("/api/profile/:userid/", GetPROFILEHandler)
+	server.POST("/api/edituser/", PostEDITUSERHandler)
 
 	// last direct to weburl
 	server.Use(spa.Middleware("/", webFolder))

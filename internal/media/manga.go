@@ -7,10 +7,10 @@ import (
 )
 
 type Manga struct {
-	Id            uint32   `json:"-"`
-	Title         string   `json:"title,omitempty"`
-	Description   string   `json:"description,omitempty"`
-	Volumes       []uint32 `json:"volumes,omitempty"`
+	Id           uint32   `json:"-"`
+	Title        string   `json:"title,omitempty"`
+	Description  string   `json:"description,omitempty"`
+	Volumes      []uint32 `json:"volumes,omitempty"`
 	CartoonmadId uint32   `json:"id_cartoonmad,omitempty"`
 }
 

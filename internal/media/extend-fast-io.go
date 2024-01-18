@@ -65,7 +65,7 @@ func ReadMedia(fileReader *fastio.FileReader) IMedia {
 
 僅寫入至緩衝區，需自行開啟、關閉檔案
 */
-func WriteMedia_MIN(fileWriter *fastio.FileWriter, media IMedia) {
+func WriteMediaMIN(fileWriter *fastio.FileWriter, media IMedia) {
 	fileWriter.Write(byte(media.GetType()))
 
 	if media.GetType() == ANIME {

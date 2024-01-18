@@ -4,6 +4,7 @@ import (
 	"Ani-Server/internal/alert"
 	"Ani-Server/internal/userManager"
 	"fmt"
+	"io/fs"
 	"os"
 	"strconv"
 
@@ -35,7 +36,6 @@ func Load(ReviewFolder string, ReviewCount uint32) {
 
 	fileReader.Init()
 
-	var reviewptr *Review
 	for _, userReviewFolder := range userReviewFolders {
 		if !userReviewFolder.IsDir() {
 			continue
@@ -51,49 +51,55 @@ func Load(ReviewFolder string, ReviewCount uint32) {
 			userMap[uint32(userId)] = make(map[uint32]*Review)
 		}
 
-		userReviewFiles, err := os.ReadDir(reviewFolder + userReviewFolder.Name() + "/")
+		LoadReviewFolder(fileReader, userReviewFolder, userId)
+	}
+}
+
+func LoadReviewFolder(fileReader fastio.FileReader, userReviewFolder fs.DirEntry, userId int) {
+
+	userReviewFiles, err := os.ReadDir(reviewFolder + userReviewFolder.Name() + "/")
+	if err != nil {
+		return
+	}
+
+	for _, userReviewFile := range userReviewFiles {
+		mediaId, err := strconv.Atoi(userReviewFile.Name())
 		if err != nil {
-			return
+			continue
 		}
-
-		for _, userReviewFile := range userReviewFiles {
-			mediaId, err := strconv.Atoi(userReviewFile.Name())
-			if err != nil {
-				continue
-			}
-
-			err = fileReader.OpenFile(reviewFolder+userReviewFolder.Name()+"/"+userReviewFile.Name(), os.O_RDONLY, 0666)
-			if err != nil {
-				fmt.Printf("[ReviewManager] 帳號:%s 作品ID:%s 開啟失敗\n", userReviewFolder.Name(), userReviewFile.Name())
-				continue
-			}
-
-			reviews = append(reviews, Review{AuthorId: uint32(userId), Author: &userManager.GetUser(uint32(userId)).UserName})
-			reviewptr = &reviews[len(reviews)-1]
-			userMap[uint32(userId)][uint32(mediaId)] = reviewptr
-
-			if _, ok := mediaMap[uint32(mediaId)]; !ok {
-				mediaMap[uint32(mediaId)] = make([]*Review, 0, 1)
-			}
-			mediaMap[uint32(mediaId)] = append(mediaMap[uint32(mediaId)], reviewptr)
-
-			reviewptr.Id = fileReader.ReadUint32()
-			idMap[reviewptr.Id] = reviewptr
-
-			reviewptr.Rank = Rank(fileReader.Read())
-
-			reviewptr.Content = fileReader.ReadString()
-
-			fileReader.Close()
-
+		reviewptr := LoadReviewFile(fileReader, reviewFolder+userReviewFolder.Name()+"/"+userReviewFile.Name(), mediaId, userId)
+		if reviewptr == nil {
+			fmt.Printf("[ReviewManager] 帳號:%s 作品ID:%s 開啟失敗\n", userReviewFolder.Name(), userReviewFile.Name())
+		} else {
 			fmt.Printf("[ReviewManager] 讀取評論 作品ID:%d%s\n", mediaId, reviewptr)
 		}
 	}
-	// for _, user := range *userManager.GetUsers() {
-	// 	for reviewId := range user.LikeReviews {
-	// 		idMap[reviewId].Like++
-	// 	}
-	// }
+}
+
+func LoadReviewFile(fileReader fastio.FileReader, path string, mediaId int, userId int) *Review {
+	err := fileReader.OpenFile(path, os.O_RDONLY, 0666)
+	if err != nil {
+		return nil
+	}
+
+	reviews = append(reviews, Review{AuthorId: uint32(userId), Author: &userManager.GetUser(uint32(userId)).UserName})
+	reviewptr := &reviews[len(reviews)-1]
+	userMap[uint32(userId)][uint32(mediaId)] = reviewptr
+
+	if _, ok := mediaMap[uint32(mediaId)]; !ok {
+		mediaMap[uint32(mediaId)] = make([]*Review, 0, 1)
+	}
+	mediaMap[uint32(mediaId)] = append(mediaMap[uint32(mediaId)], reviewptr)
+
+	reviewptr.Id = fileReader.ReadUint32()
+	idMap[reviewptr.Id] = reviewptr
+
+	reviewptr.Rank = Rank(fileReader.Read())
+
+	reviewptr.Content = fileReader.ReadString()
+
+	fileReader.Close()
+	return reviewptr
 }
 
 func Save() {
